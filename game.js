@@ -4,6 +4,7 @@
     Add a divisor creep option that increases the probability of divisors spawning as the game progresses
     Add a scaling enemies option that increases the value of enemies as the game progresses
     Make subtractorSpawnDelay optional
+    Add touch screen support for mobile devices
 */
 // Game state
 let gameState = 'menu'; // 'menu', 'playing', 'gameOver', 'settings'
