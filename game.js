@@ -99,10 +99,14 @@ function init() {
     canvas.addEventListener('click', handleClick);
     
     // Add unified input handlers for both mouse and touch
-    canvas.addEventListener('mousedown', handleScreenInput);
-    canvas.addEventListener('mouseup', handleScreenInputEnd);
-    canvas.addEventListener('touchstart', handleScreenInput);
-    canvas.addEventListener('touchend', handleScreenInputEnd);
+    canvas.addEventListener('mousedown', handleInput);
+    canvas.addEventListener('mouseup', handleInputEnd);
+    canvas.addEventListener('mouseleave', handleInputEnd);
+    
+    // Touch events with passive: false to prevent scrolling
+    canvas.addEventListener('touchstart', handleInput, { passive: false });
+    canvas.addEventListener('touchend', handleInputEnd, { passive: false });
+    canvas.addEventListener('touchcancel', handleInputEnd, { passive: false });
     
     // Initialize player
     resetPlayer();
@@ -360,6 +364,45 @@ function handleScreenInput(e) {
 
 function handleScreenInputEnd(e) {
     e.preventDefault();
+    keys['jump'] = false;
+    keys['left'] = false;
+    keys['right'] = false;
+}
+
+function handleInput(e) {
+    e.preventDefault(); // Prevent scrolling and other default behaviors
+    
+    // Get the x coordinate whether it's a mouse or touch event
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const width = rect.width;
+    
+    // Calculate relative position (0 to 1)
+    const relativeX = x / width;
+    
+    // Left third
+    if (relativeX < 0.33) {
+        keys['left'] = true;
+        keys['right'] = false;
+        keys['jump'] = false;
+    }
+    // Right third
+    else if (relativeX > 0.66) {
+        keys['right'] = true;
+        keys['left'] = false;
+        keys['jump'] = false;
+    }
+    // Middle third
+    else {
+        keys['jump'] = true;
+        keys['left'] = false;
+        keys['right'] = false;
+    }
+}
+
+function handleInputEnd(e) {
+    e.preventDefault();
+    // Reset all input states
     keys['jump'] = false;
     keys['left'] = false;
     keys['right'] = false;
