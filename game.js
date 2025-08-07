@@ -1,10 +1,10 @@
 /* To do
     Fix the jump behaviour at high speeds, goes way too high and takes too long to land.
     Add optional music.
+    Uncomment loadsettings() and savesettings() functions and add missing settings.
     Add a divisor creep option that increases the probability of divisors spawning as the game progresses
     Add a scaling enemies option that increases the value of enemies as the game progresses
     Make subtractorSpawnDelay optional
-    Add touch screen support for mobile devices
     Fix infinite scores showing up as 'null' when the vercel version redeploys
 */
 // Game state
@@ -96,7 +96,6 @@ function init() {
     // Event listeners
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
-    canvas.addEventListener('click', handleClick);
     
     // Add unified input handlers for both mouse and touch
     canvas.addEventListener('mousedown', handleInput);
@@ -340,42 +339,18 @@ function jump() {
 }
 
 // Touch screen input handling
-function handleScreenInput(e) {
-    e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    // Get position from either mouse click or touch
-    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-    
-    // Left third = move left
-    if (x < canvas.width / 3) {
-        keys['left'] = true;
-        keys['right'] = false;
-    }
-    // Right third = move right
-    else if (x > (canvas.width * 2) / 3) {
-        keys['right'] = true;
-        keys['left'] = false;
-    }
-    // Middle third = jump
-    else {
-        keys['jump'] = true;
-    }
-}
-
-function handleScreenInputEnd(e) {
-    e.preventDefault();
-    keys['jump'] = false;
-    keys['left'] = false;
-    keys['right'] = false;
-}
-
 function handleInput(e) {
     e.preventDefault(); // Prevent scrolling and other default behaviors
     
     // Get the x coordinate whether it's a mouse or touch event
     const rect = canvas.getBoundingClientRect();
-    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const x = (e.type.includes('touch') ? e.touches[0].clientX : e.clientX) - rect.left;
     const width = rect.width;
+    
+    // Reset all keys first
+    keys['left'] = false;
+    keys['right'] = false;
+    keys['jump'] = false;
     
     // Calculate relative position (0 to 1)
     const relativeX = x / width;
@@ -383,20 +358,17 @@ function handleInput(e) {
     // Left third
     if (relativeX < 0.33) {
         keys['left'] = true;
-        keys['right'] = false;
-        keys['jump'] = false;
     }
     // Right third
     else if (relativeX > 0.66) {
         keys['right'] = true;
-        keys['left'] = false;
-        keys['jump'] = false;
     }
     // Middle third
     else {
         keys['jump'] = true;
-        keys['left'] = false;
-        keys['right'] = false;
+        if (player.onGround) {
+            jump();
+        }
     }
 }
 
@@ -444,14 +416,19 @@ function toggleDefaultHighScores() {
 function updatePlayer() {
     // Handle horizontal movement with game speed multiplier
     let moveSpeed = 5 * gameSpeed;
-    if (keys['a'] || keys['arrowleft']) {
+    if (keys['a'] || keys['arrowleft'] || keys['left']) {
         player.velocity.x = Math.max(player.velocity.x - 0.5, -moveSpeed);
-    } else if (keys['d'] || keys['arrowright']) {
+    } else if (keys['d'] || keys['arrowright'] || keys['right']) {
         player.velocity.x = Math.min(player.velocity.x + 0.5, moveSpeed);
     } else {
         player.velocity.x *= 0.8; // Friction
     }
     
+    // Jump when jump key is pressed
+    if (keys['jump'] && player.onGround) {
+        jump();
+    }
+
     // Apply gravity
     if (!player.onGround) {
         player.velocity.y += player.gravity;
