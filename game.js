@@ -5,6 +5,7 @@
     Add a scaling enemies option that increases the value of enemies as the game progresses
     Make subtractorSpawnDelay optional
     Add touch screen support for mobile devices
+    Fix infinite scores showing up as 'null' when the vercel version redeploys
 */
 // Game state
 let gameState = 'menu'; // 'menu', 'playing', 'gameOver', 'settings'
@@ -96,6 +97,12 @@ function init() {
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
     canvas.addEventListener('click', handleClick);
+    
+    // Add unified input handlers for both mouse and touch
+    canvas.addEventListener('mousedown', handleScreenInput);
+    canvas.addEventListener('mouseup', handleScreenInputEnd);
+    canvas.addEventListener('touchstart', handleScreenInput);
+    canvas.addEventListener('touchend', handleScreenInputEnd);
     
     // Initialize player
     resetPlayer();
@@ -326,6 +333,36 @@ function jump() {
         player.velocity.y = -player.jumpPower * (scaleJump ? gameSpeed : 1);
         player.onGround = false;
     }
+}
+
+// Touch screen input handling
+function handleScreenInput(e) {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    // Get position from either mouse click or touch
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    
+    // Left third = move left
+    if (x < canvas.width / 3) {
+        keys['left'] = true;
+        keys['right'] = false;
+    }
+    // Right third = move right
+    else if (x > (canvas.width * 2) / 3) {
+        keys['right'] = true;
+        keys['left'] = false;
+    }
+    // Middle third = jump
+    else {
+        keys['jump'] = true;
+    }
+}
+
+function handleScreenInputEnd(e) {
+    e.preventDefault();
+    keys['jump'] = false;
+    keys['left'] = false;
+    keys['right'] = false;
 }
 
 // Function to toggle scaling jump height to speed
