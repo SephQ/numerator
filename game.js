@@ -797,7 +797,7 @@ function updateRankingsDisplay(scores) {
 
     // Sometimes Infinity is set to null, sort it to the top
     displayScores.sort((a, b) => {
-        if (a.score === null) return -1; // Null scores go to top
+        if (a.score === null && b.score !== null || b.time > a.time) return -1; // Null scores go to top
         if (b.score === null) return 1; // Null scores go to top
         return b.score - a.score; // Sort descending
     });
