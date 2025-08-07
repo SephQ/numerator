@@ -505,7 +505,7 @@ function spawnGameObject() {
         } else if (rand < cumulativeFrequencies[2]) {
             // Spawn multiplier
             const value = Math.floor(Math.random() * (maxMultiplier - 1)) + 2;
-            const yMult = y - guardDistance;
+            const yMult = y - guardDistance * screenScale;
             if (!multiplierGuards) {
                 gameObjects.push(new GameObject(x, y, 'multiplier', value));
                 // return; // Skip guards if not enabled
@@ -514,8 +514,8 @@ function spawnGameObject() {
                 // Also spawn 4 subtractors as guards around it
                 for (let i = 0; i < 4; i++) {
                     const angle = (i / 4) * Math.PI * 2;
-                    const offsetX = Math.cos(angle) * guardDistance;
-                    const offsetY = Math.sin(angle) * guardDistance;
+                    const offsetX = Math.cos(angle) * guardDistance * screenScale;
+                    const offsetY = Math.sin(angle) * guardDistance * screenScale;
                     const subValue = Math.floor(Math.random() * 5) + 1; // Smaller subtractors
                     gameObjects.push(new GameObject(x + offsetX, yMult + offsetY, 'negative', subValue));
                 }
