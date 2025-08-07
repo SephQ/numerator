@@ -114,17 +114,40 @@ function init() {
     gameLoop();
 }
 
+let screenScale = 1; // Default scale for desktop
+
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    
+    // Calculate scale based on screen width and orientation
+    // Use 1024 as our "standard" width for landscape
+    // Use 768 as our "standard" height for portrait
+    const isPortrait = window.innerHeight > window.innerWidth;
+    if (isPortrait) {
+        // In portrait, scale based on width but with a higher minimum
+        screenScale = Math.max(0.3, Math.min(1, window.innerWidth / 768));
+    } else {
+        // In landscape, use normal width-based scaling
+        screenScale = Math.min(1, window.innerWidth / 1024);
+    }
+    
+    // Update the CSS variable for UI scaling
+    document.documentElement.style.setProperty('--screen-scale', screenScale);
+
+    // Update player size
+    if (player) {
+        player.width = 80 * screenScale;
+        player.height = 80 * screenScale;
+    }
 }
 
 function resetPlayer() {
     player = {
         x: canvas.width / 2,
         y: canvas.height - 100,
-        width: 80,
-        height: 80,
+        width: 80 * screenScale,
+        height: 80 * screenScale,
         number: 0,
         velocity: { x: 0, y: 0 },
         onGround: true,
@@ -149,8 +172,9 @@ class GameObject {
         this.y = y;
         this.type = type; // 'positive', 'negative', 'division', 'multiplier'
         this.value = value;
-        this.width = type === 'division' ? canvas.width : type === 'multiplier' ? 30 : 60;
-        this.height = type === 'division' ? 20 : type === 'multiplier' ? 30 : 60;
+        // Scale the objects based on screen size
+        this.width = (type === 'division' ? canvas.width : type === 'multiplier' ? 30 : 60) * screenScale;
+        this.height = (type === 'division' ? 20 : type === 'multiplier' ? 30 : 60) * screenScale;
         this.collected = false;
         this.attackTimer = 0;
         this.attacking = false;
@@ -202,7 +226,7 @@ class GameObject {
             ctx.strokeRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
             
             ctx.fillStyle = 'white';
-            ctx.font = 'bold 24px Arial';
+            ctx.font = `bold ${24 * screenScale}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(`+${this.value}`, this.x, this.y);
@@ -223,7 +247,7 @@ class GameObject {
             ctx.strokeRect(this.x - width/2, this.y - height/2, width, height);
             
             ctx.fillStyle = 'white';
-            ctx.font = `bold ${24 * scale}px Arial`;
+            ctx.font = `bold ${24 * scale * screenScale}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(`-${this.value}`, this.x, this.y);
@@ -245,7 +269,7 @@ class GameObject {
             ctx.strokeRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
             
             ctx.fillStyle = 'white';
-            ctx.font = 'bold 28px Arial';
+            ctx.font = `bold ${28 * screenScale}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(`*${this.value}`, this.x, this.y);
@@ -274,7 +298,7 @@ class GameObject {
             
             // Bold text for division lines
             ctx.fillStyle = '#92400e';
-            ctx.font = 'bold 18px Arial';
+            ctx.font = `bold ${18 * screenScale}px Arial`;
             ctx.textAlign = 'left';
             // Fill the entire line with repeated "/ N / N / N"
             const pattern = ` / ${this.value}`;
@@ -566,7 +590,7 @@ function drawPlayer() {
     
     // Player number
     ctx.fillStyle = 'white';
-    ctx.font = 'bold 36px Arial';
+    ctx.font = `bold ${36 * screenScale}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(player.number.toString(), player.x, player.y);
@@ -770,8 +794,9 @@ function updateRankingsDisplay(scores) {
     
     displayScores.forEach((entry, index) => {
         const row = document.createElement('tr');
-        const score = entry.score > 1e9 ?
+        let score = entry.score > 1e9 ?
             parseFloat(entry.score).toPrecision(5) : entry.score;
+        score === null ? score = "Infinity" : score;
         row.innerHTML = `
             <td>${index + 1}.</td>
             <td>${score}</td>
