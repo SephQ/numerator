@@ -5,7 +5,7 @@
     Add a divisor creep option that increases the probability of divisors spawning as the game progresses
     Add a scaling enemies option that increases the value of enemies as the game progresses
     Make subtractorSpawnDelay optional
-    Fix infinite scores showing up as 'null' when the vercel version redeploys
+    Add an exit button for gameplay for mobile users (no 'ESC' key)
 */
 // Game state
 let gameState = 'menu'; // 'menu', 'playing', 'gameOver', 'settings'
@@ -794,12 +794,19 @@ function updateRankingsDisplay(scores) {
     if (displayScores.length === 0) {
         displayScores.push({ score: 0, time: '0:00' });
     }
+
+    // Sometimes Infinity is set to null, sort it to the top
+    displayScores.sort((a, b) => {
+        if (a.score === null) return -1; // Null scores go to top
+        if (b.score === null) return 1; // Null scores go to top
+        return b.score - a.score; // Sort descending
+    });
     
     displayScores.forEach((entry, index) => {
         const row = document.createElement('tr');
         let score = entry.score > 1e9 ?
             parseFloat(entry.score).toPrecision(5) : entry.score;
-        score === null ? score = "Infinity" : score;
+        score === null ? score = Infinity : score;
         row.innerHTML = `
             <td>${index + 1}.</td>
             <td>${score}</td>
