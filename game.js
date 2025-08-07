@@ -190,7 +190,7 @@ class GameObject {
                 Math.pow(this.x - player.x, 2) + Math.pow(this.y - player.y, 2)
             );
             
-            if (distanceToPlayer < 120 && !this.attacking) {
+            if (distanceToPlayer < 120 * screenScale && !this.attacking) {
                 this.attacking = true;
                 this.attackTimer = 30; // Attack animation duration
             }
