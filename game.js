@@ -369,7 +369,9 @@ function handleInput(e) {
     // Get the x coordinate whether it's a mouse or touch event
     const rect = canvas.getBoundingClientRect();
     const x = (e.type.includes('touch') ? e.touches[0].clientX : e.clientX) - rect.left;
+    const y = (e.type.includes('touch') ? e.touches[0].clientY : e.clientY) - rect.top;
     const width = rect.width;
+    const height = rect.height;
     
     // Reset all keys first
     keys['left'] = false;
@@ -378,13 +380,14 @@ function handleInput(e) {
     
     // Calculate relative position (0 to 1)
     const relativeX = x / width;
+    const relativeY = y / height;
     
     // Left third
-    if (relativeX < 0.33) {
+    if (relativeX < 0.33 && relativeY > 0.33) {
         keys['left'] = true;
     }
     // Right third
-    else if (relativeX > 0.66) {
+    else if (relativeX > 0.66 && relativeY > 0.33) {
         keys['right'] = true;
     }
     // Middle third
